@@ -126,7 +126,7 @@ class Pirum_CLI
     }
 
     copy($this->options[3], $target.'/get/'.basename($this->options[3]));
-    system('cd '.$target.'/get/ && gunzip -f '.basename($this->options[3]));
+    system('cd '.$target.'/get/ && gunzip '.basename($this->options[3]));
     copy($this->options[3], $target.'/get/'.basename($this->options[3]));
 
     $this->runBuild($target);
@@ -420,6 +420,7 @@ EOF;
 
     $url = strtolower($package['name']);
 
+    $latest = '';
     $alpha = '';
     $beta = '';
     $stable = '';
@@ -430,14 +431,17 @@ EOF;
       if ('stable' == $release['stability'] && !$stable)
       {
         $stable = $release['version'];
+        $latest = $release['version'];
       }
       elseif ('beta' == $release['stability'] && !$beta)
       {
         $beta = $release['version'];
+        $latest = $latest == '' ? $release['version'] : $latest;
       }
       elseif ('alpha' == $release['stability'] && !$alpha)
       {
         $alpha = $release['version'];
+        $latest = $latest == '' ? $release['version'] : $latest;
       }
 
       $allreleases .= <<<EOF
@@ -459,6 +463,8 @@ EOF;
 
       $this->buildRelease($dir, $package, $release);
     }
+
+    file_put_contents($dir.'/latest.txt', $latest);
 
     if ($stable)
     {
